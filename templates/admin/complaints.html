@@ -1,0 +1,174 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Manage Complaints - Smart Class Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h3 class="fw-bold mb-0">Complaint Management</h3>
+    <small class="text-muted">Review, filter, and respond to anonymous student submissions</small>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('admin.export_csv') }}" class="btn btn-outline-success btn-sm">
+      <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export CSV
+    </a>
+  </div>
+</div>
+
+<!-- Search & Filter Card -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body p-3 p-md-4">
+    <form method="GET" action="{{ url_for('admin.complaints') }}" class="row g-2 align-items-end">
+      <!-- Keyword Search -->
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold text-muted">Search Keywords</label>
+        <div class="input-group">
+          <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+          <input type="text" name="q" class="form-control" placeholder="ID, issue text, faculty..." value="{{ search_q }}">
+        </div>
+      </div>
+
+      <!-- Category Filter -->
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold text-muted">Category</label>
+        <select name="category" class="form-select">
+          <option value="">All Categories</option>
+          {% for cat in categories %}
+            <option value="{{ cat }}" {% if category_filter == cat %}selected{% endif %}>{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Location Filter -->
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold text-muted">Location</label>
+        <select name="location" class="form-select">
+          <option value="">All Locations</option>
+          {% for loc in locations %}
+            <option value="{{ loc.name }}" {% if location_filter == loc.name %}selected{% endif %}>{{ loc.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Priority Filter -->
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold text-muted">Priority</label>
+        <select name="priority" class="form-select">
+          <option value="">All Priorities</option>
+          {% for p in priorities %}
+            <option value="{{ p }}" {% if priority_filter == p %}selected{% endif %}>{{ p }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Status Filter -->
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold text-muted">Status</label>
+        <select name="status" class="form-select">
+          <option value="">All Statuses</option>
+          {% for s in statuses %}
+            <option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Sort & Submit Buttons -->
+      <div class="col-md-1">
+        <label class="form-label small fw-semibold text-muted">Sort</label>
+        <select name="sort" class="form-select">
+          <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest</option>
+          <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest</option>
+          <option value="priority" {% if sort_by == 'priority' %}selected{% endif %}>Priority</option>
+        </select>
+      </div>
+
+      <div class="col-12 d-flex justify-content-end gap-2 mt-3">
+        <a href="{{ url_for('admin.complaints') }}" class="btn btn-outline-secondary btn-sm">
+          Reset Filters
+        </a>
+        <button type="submit" class="btn btn-primary btn-sm px-3">
+          <i class="bi bi-funnel me-1"></i> Apply Filters
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Complaints Table Card -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+    <span class="fw-semibold text-muted small">Showing <strong>{{ total_matched }}</strong> complaint(s)</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th style="min-width: 140px;">Complaint ID</th>
+          <th style="min-width: 120px;">Date & Time</th>
+          <th style="min-width: 130px;">Category</th>
+          <th style="min-width: 140px;">Faculty / Staff</th>
+          <th style="min-width: 250px;">Description</th>
+          <th style="min-width: 130px;">Location</th>
+          <th style="min-width: 100px;">Priority</th>
+          <th style="min-width: 110px;">Status</th>
+          <th style="min-width: 100px;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in complaints %}
+          <tr>
+            <td>
+              <a href="{{ url_for('admin.complaint_detail', id=c.id) }}" class="fw-bold font-monospace text-decoration-none">
+                {{ c.complaint_id }}
+              </a>
+            </td>
+            <td class="small text-muted text-nowrap">
+              <div>{{ c.created_at.strftime('%Y-%m-%d') }}</div>
+              <div style="font-size: 0.75rem;">{{ c.created_at.strftime('%I:%M %p') }}</div>
+            </td>
+            <td>
+              <span class="badge bg-secondary-subtle text-secondary border">{{ c.category }}</span>
+            </td>
+            <td class="small">
+              {% if c.faculty_staff_name %}
+                <span class="fw-semibold text-dark"><i class="bi bi-person me-1"></i>{{ c.faculty_staff_name }}</span>
+              {% else %}
+                <span class="text-muted fst-italic">None</span>
+              {% endif %}
+            </td>
+            <td class="small text-secondary" style="max-width: 320px;">
+              <div class="text-truncate" title="{{ c.description }}">
+                {{ c.description }}
+              </div>
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border">{{ c.location }}</span>
+              {% if c.specific_location %}
+                <div class="small text-muted" style="font-size: 0.75rem;">{{ c.specific_location }}</div>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge {{ c.priority_badge_class }}">{{ c.priority }}</span>
+            </td>
+            <td>
+              <span class="badge {{ c.status_badge_class }}">{{ c.status }}</span>
+            </td>
+            <td>
+              <a href="{{ url_for('admin.complaint_detail', id=c.id) }}" class="btn btn-sm btn-primary">
+                <i class="bi bi-pencil-square me-1"></i> Manage
+              </a>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="9" class="text-center text-muted py-5">
+              <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+              No complaints match the specified search or filter criteria.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

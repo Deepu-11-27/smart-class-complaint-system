@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Complaint Submitted Successfully - Smart Class Complaint System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+      <div class="card shadow border-0 text-center p-4 p-md-5">
+        
+        <div class="mb-4">
+          <div class="rounded-circle bg-success-subtle text-success mx-auto d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+            <i class="bi bi-check-lg display-5 fw-bold"></i>
+          </div>
+        </div>
+
+        <h3 class="fw-bold text-dark mb-2">Complaint Submitted Successfully</h3>
+        <p class="text-muted mb-4">Your complaint has been received and registered with the administration.</p>
+
+        <!-- Complaint ID Box -->
+        <div class="p-3 bg-light border rounded-3 mb-4 text-center">
+          <small class="text-uppercase fw-bold text-muted d-block mb-1">Your Unique Complaint ID</small>
+          <div class="display-6 fw-bold text-primary font-monospace my-1" id="complaintIdDisplay">
+            {{ complaint_id }}
+          </div>
+          <button type="button" class="btn btn-outline-primary btn-sm mt-2 btn-copy-id" data-clipboard-text="{{ complaint_id }}">
+            <i class="bi bi-clipboard me-1"></i> Copy Complaint ID
+          </button>
+        </div>
+
+        <!-- Privacy Reminder Note -->
+        <div class="alert alert-info border-0 bg-info-subtle text-start p-3 mb-4">
+          <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-info-circle-fill text-info fs-5 mt-1"></i>
+            <div>
+              <strong class="d-block text-dark">Important Reminder:</strong>
+              <span class="small text-secondary">
+                Please save your Complaint ID to check the status of your complaint later. Since no personal contact details were collected, this ID is the only way to track your issue.
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Action Buttons -->
+        <div class="d-grid gap-2">
+          <a href="{{ url_for('public.track', id=complaint_id) }}" class="btn btn-primary btn-lg shadow-sm">
+            <i class="bi bi-search me-2"></i> Track Complaint Status
+          </a>
+          <a href="{{ url_for('public.complaint') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-plus-circle me-2"></i> Submit Another Issue
+          </a>
+          <a href="{{ url_for('public.index') }}" class="btn btn-link text-decoration-none text-muted small mt-2">
+            <i class="bi bi-house me-1"></i> Return to Home
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

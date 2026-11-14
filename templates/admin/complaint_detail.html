@@ -1,0 +1,153 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Complaint {{ complaint.complaint_id }} - Smart Class Admin{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <a href="{{ url_for('admin.complaints') }}" class="btn btn-outline-secondary btn-sm mb-2">
+    <i class="bi bi-arrow-left me-1"></i> Back to Complaints List
+  </a>
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h3 class="fw-bold mb-1">
+        Complaint <span class="font-monospace text-primary">{{ complaint.complaint_id }}</span>
+      </h3>
+      <small class="text-muted">Submitted on {{ complaint.created_at.strftime('%A, %B %d, %Y at %I:%M %p') }}</small>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+      <span class="badge {{ complaint.priority_badge_class }} fs-6 px-3 py-2">
+        {{ complaint.priority }} Priority
+      </span>
+      <span class="badge {{ complaint.status_badge_class }} fs-6 px-3 py-2">
+        {{ complaint.status }}
+      </span>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Left Column: Complaint Details -->
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white py-3">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-info-circle text-primary me-2"></i>Complaint Information</h6>
+      </div>
+      <div class="card-body p-4">
+        
+        <div class="row g-3 mb-4">
+          <div class="col-sm-6">
+            <span class="text-muted small d-block">Location</span>
+            <strong class="text-dark"><i class="bi bi-geo-alt text-danger me-1"></i> {{ complaint.location }}</strong>
+            {% if complaint.specific_location %}
+              <div class="small text-muted">Specific spot: <em>{{ complaint.specific_location }}</em></div>
+            {% endif %}
+          </div>
+          <div class="col-sm-6">
+            <span class="text-muted small d-block">Category</span>
+            <strong class="text-dark"><i class="bi bi-tag text-primary me-1"></i> {{ complaint.category }}</strong>
+          </div>
+          {% if complaint.faculty_staff_name %}
+            <div class="col-12">
+              <span class="text-muted small d-block">Faculty / Staff Member Voluntarily Named</span>
+              <span class="badge bg-light text-dark border fs-6"><i class="bi bi-person me-1"></i> {{ complaint.faculty_staff_name }}</span>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-bold text-dark"><i class="bi bi-chat-left-text me-1 text-primary"></i> Student Issue Description</label>
+          <div class="p-3 bg-light border rounded-3 text-dark" style="white-space: pre-wrap; font-size: 1rem; line-height: 1.6;">{{ complaint.description }}</div>
+        </div>
+
+        <div class="privacy-banner mt-3">
+          <small class="text-success-emphasis d-flex align-items-center gap-2">
+            <i class="bi bi-shield-check fs-5"></i>
+            <span><strong>Anonymous Submission:</strong> No student identification, email, phone, IP address, or device fingerprint is associated with this complaint.</span>
+          </small>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Status History Card -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-clock-history text-primary me-2"></i>Status & Resolution History</h6>
+      </div>
+      <div class="card-body p-4">
+        <div class="timeline">
+          {% for hist in history %}
+            <div class="timeline-item {% if hist.new_status == 'Resolved' %}resolved{% elif hist.new_status == 'Rejected' %}rejected{% endif %}">
+              <div class="timeline-time">{{ hist.created_at.strftime('%b %d, %Y at %I:%M %p') }} by {{ hist.changed_by }}</div>
+              <div class="timeline-content">
+                <div class="fw-bold text-dark mb-1">
+                  {% if hist.old_status %}
+                    Status changed: <span class="badge bg-secondary">{{ hist.old_status }}</span> &rarr; <span class="badge bg-primary">{{ hist.new_status }}</span>
+                  {% else %}
+                    Initial Status: <span class="badge bg-secondary">{{ hist.new_status }}</span>
+                  {% endif %}
+                </div>
+                {% if hist.comment %}
+                  <p class="small text-secondary mb-0">{{ hist.comment }}</p>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Update Status & Admin Response -->
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm sticky-top" style="top: 80px;">
+      <div class="card-header bg-white py-3">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-pencil-square text-primary me-2"></i>Take Action / Respond</h6>
+      </div>
+      <div class="card-body p-4">
+        <form action="{{ url_for('admin.complaint_detail', id=complaint.id) }}" method="POST">
+          <input type="hidden" name="action_type" value="update_status">
+
+          <!-- Status Dropdown -->
+          <div class="mb-3">
+            <label for="status" class="form-label fw-bold small text-muted">Update Status</label>
+            <select name="status" id="status" class="form-select form-select-lg">
+              {% for s in statuses %}
+                <option value="{{ s }}" {% if complaint.status == s %}selected{% endif %}>
+                  {{ s }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Admin Response to Student -->
+          <div class="mb-3">
+            <label for="admin_response" class="form-label fw-bold small text-muted">
+              Admin Response <span class="text-primary">(Visible to Student on Tracking Page)</span>
+            </label>
+            <textarea name="admin_response" id="admin_response" rows="4" class="form-control" placeholder="e.g. Maintenance team inspected and repaired the fan today.">{{ complaint.admin_response or '' }}</textarea>
+            <div class="form-text small text-muted">
+              This response is publicly displayed when the student tracks this complaint using Complaint ID <code>{{ complaint.complaint_id }}</code>.
+            </div>
+          </div>
+
+          <!-- Internal Audit / Note -->
+          <div class="mb-4">
+            <label for="status_note" class="form-label fw-bold small text-muted">Action Note / Log Remark (Optional)</label>
+            <input type="text" name="status_note" id="status_note" class="form-control" placeholder="e.g. Forwarded ticket to electrician department">
+          </div>
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary btn-lg fw-bold shadow-sm">
+              <i class="bi bi-check2-circle me-1"></i> Save Changes & Update Status
+            </button>
+            <a href="{{ url_for('public.track', id=complaint.complaint_id) }}" target="_blank" class="btn btn-outline-secondary btn-sm">
+              <i class="bi bi-eye me-1"></i> Preview Student Tracking View
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

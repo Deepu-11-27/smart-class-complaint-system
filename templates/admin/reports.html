@@ -1,0 +1,257 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Reports & Analytics - Smart Class Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h3 class="fw-bold mb-0">Complaint Reports & Analytics</h3>
+    <small class="text-muted">Periodic summaries, categorical distributions, and CSV data export</small>
+  </div>
+  <div>
+    <a href="{{ url_for('admin.export_csv') }}" class="btn btn-success btn-sm px-3 shadow-sm">
+      <i class="bi bi-file-earmark-arrow-down-fill me-1"></i> Export Full CSV Report
+    </a>
+  </div>
+</div>
+
+<!-- Time Periodic Summary Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm p-3 bg-white">
+      <span class="text-muted small fw-semibold text-uppercase">Today's Complaints</span>
+      <h3 class="fw-bold text-primary mb-0 mt-1">{{ daily_count }}</h3>
+      <small class="text-muted">Submitted in the last 24 hours</small>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm p-3 bg-white">
+      <span class="text-muted small fw-semibold text-uppercase">Past 7 Days (Weekly)</span>
+      <h3 class="fw-bold text-info mb-0 mt-1">{{ weekly_count }}</h3>
+      <small class="text-muted">Trailing 7 calendar days</small>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm p-3 bg-white">
+      <span class="text-muted small fw-semibold text-uppercase">Past 30 Days (Monthly)</span>
+      <h3 class="fw-bold text-success mb-0 mt-1">{{ monthly_count }}</h3>
+      <small class="text-muted">Trailing 30 calendar days</small>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm p-3 bg-white">
+      <span class="text-muted small fw-semibold text-uppercase">All-Time Total</span>
+      <h3 class="fw-bold text-dark mb-0 mt-1">{{ total_count }}</h3>
+      <small class="text-muted">Cumulative complaints logged</small>
+    </div>
+  </div>
+</div>
+
+<!-- Academic & Faculty Issues Spotlight -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header bg-white py-3">
+    <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-mortarboard-fill text-primary me-2"></i>Academic & Faculty Grievance Summary</h6>
+  </div>
+  <div class="card-body p-4">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div class="p-3 bg-light rounded-3 border">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-bold text-dark">Faculty-Related Complaints</span>
+            <span class="badge bg-secondary fs-6">{{ faculty_count }}</span>
+          </div>
+          <p class="small text-muted mb-0">
+            Covers behavior, faculty consultation availability, attendance disputes, or specifically named staff.
+          </p>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="p-3 bg-light rounded-3 border">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-bold text-dark">Teaching Quality & Pace Issues</span>
+            <span class="badge bg-primary fs-6">{{ teaching_count }}</span>
+          </div>
+          <p class="small text-muted mb-0">
+            Covers lecture delivery, subject explanation speed, syllabus coverage, and class management.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Breakdown Tables Grid -->
+<div class="row g-4 mb-4">
+  <!-- Complaints by Category -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white py-3">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-tags text-primary me-2"></i>Complaints by Category</h6>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Category</th>
+              <th class="text-end">Count</th>
+              <th class="text-end" style="width: 120px;">Percentage</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cat, count in category_breakdown %}
+              {% set pct = (count / total_count * 100)|round(1) if total_count > 0 else 0 %}
+              <tr>
+                <td>{{ cat }}</td>
+                <td class="text-end fw-bold">{{ count }}</td>
+                <td class="text-end">
+                  <div class="d-flex align-items-center justify-content-end gap-2">
+                    <span class="small text-muted">{{ pct }}%</span>
+                    <div class="progress" style="width: 45px; height: 6px;">
+                      <div class="progress-bar bg-primary" style="width: {{ pct }}%"></div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            {% else %}
+              <tr><td colspan="3" class="text-center text-muted">No data available</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Complaints by Location -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white py-3">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-geo-alt text-primary me-2"></i>Complaints by Location (Top)</h6>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Location</th>
+              <th class="text-end">Count</th>
+              <th class="text-end" style="width: 120px;">Percentage</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for loc, count in location_breakdown %}
+              {% set pct = (count / total_count * 100)|round(1) if total_count > 0 else 0 %}
+              <tr>
+                <td>{{ loc }}</td>
+                <td class="text-end fw-bold">{{ count }}</td>
+                <td class="text-end">
+                  <div class="d-flex align-items-center justify-content-end gap-2">
+                    <span class="small text-muted">{{ pct }}%</span>
+                    <div class="progress" style="width: 45px; height: 6px;">
+                      <div class="progress-bar bg-success" style="width: {{ pct }}%"></div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            {% else %}
+              <tr><td colspan="3" class="text-center text-muted">No data available</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Complaints by Status -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white py-3">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-activity text-primary me-2"></i>Complaints by Status</h6>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Status</th>
+              <th class="text-end">Count</th>
+              <th class="text-end">Percentage</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for status, count in status_breakdown %}
+              {% set pct = (count / total_count * 100)|round(1) if total_count > 0 else 0 %}
+              <tr>
+                <td>
+                  <span class="badge 
+                    {% if status == 'Pending' %}bg-secondary
+                    {% elif status == 'Under Review' %}bg-info text-dark
+                    {% elif status == 'In Progress' %}bg-primary
+                    {% elif status == 'Resolved' %}bg-success
+                    {% else %}bg-danger{% endif %}">
+                    {{ status }}
+                  </span>
+                </td>
+                <td class="text-end fw-bold">{{ count }}</td>
+                <td class="text-end small text-muted">{{ pct }}%</td>
+              </tr>
+            {% else %}
+              <tr><td colspan="3" class="text-center text-muted">No data available</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Complaints by Priority -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white py-3">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-flag text-primary me-2"></i>Complaints by Priority</h6>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Priority</th>
+              <th class="text-end">Count</th>
+              <th class="text-end">Percentage</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for prio, count in priority_breakdown %}
+              {% set pct = (count / total_count * 100)|round(1) if total_count > 0 else 0 %}
+              <tr>
+                <td>
+                  <span class="badge 
+                    {% if prio == 'Emergency' %}bg-danger
+                    {% elif prio == 'High' %}bg-warning text-dark
+                    {% elif prio == 'Medium' %}bg-primary
+                    {% else %}bg-light text-dark border{% endif %}">
+                    {{ prio }}
+                  </span>
+                </td>
+                <td class="text-end fw-bold">{{ count }}</td>
+                <td class="text-end small text-muted">{{ pct }}%</td>
+              </tr>
+            {% else %}
+              <tr><td colspan="3" class="text-center text-muted">No data available</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Privacy Compliance Notice -->
+<div class="privacy-banner shadow-sm">
+  <div class="d-flex align-items-center gap-3">
+    <i class="bi bi-shield-check fs-2 text-success"></i>
+    <div>
+      <h6 class="fw-bold text-success-emphasis mb-1">Privacy Compliance Verification</h6>
+      <p class="small text-muted mb-0">
+        In strict adherence to student confidentiality standards, exported CSV files and system reports omit any identifying student data, IPs, and device fingerprints.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

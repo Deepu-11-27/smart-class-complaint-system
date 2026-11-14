@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Smart Class Complaint System - Anonymous & Confidential{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Hero Section -->
+  <div class="hero-gradient p-4 p-md-5 rounded-4 mb-5 shadow-sm text-center text-md-start">
+    <div class="row align-items-center gy-4">
+      <div class="col-lg-8">
+        <span class="badge bg-success bg-opacity-25 text-success border border-success-subtle px-3 py-2 rounded-pill fw-semibold mb-3">
+          <i class="bi bi-incognito me-1"></i> 100% Anonymous & Confidential
+        </span>
+        <h1 class="display-5 fw-bold text-white mb-3">
+          Smart Class Complaint System
+        </h1>
+        <p class="lead text-light text-opacity-75 mb-4">
+          Report any issue in your school or college. No personal details, roll numbers, or accounts are required.
+        </p>
+        <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-md-start">
+          <a href="{{ url_for('public.complaint') }}" class="btn btn-primary btn-lg px-4 shadow">
+            <i class="bi bi-pencil-square me-2"></i> Submit a Complaint
+          </a>
+          <a href="{{ url_for('public.track') }}" class="btn btn-outline-light btn-lg px-4">
+            <i class="bi bi-search me-2"></i> Track Complaint Status
+          </a>
+        </div>
+      </div>
+      <div class="col-lg-4 text-center">
+        <div class="p-3 bg-white bg-opacity-10 rounded-4 border border-white border-opacity-10 backdrop-blur d-inline-block">
+          <div class="bg-white p-3 rounded-3 shadow text-dark" style="max-width: 220px; margin: 0 auto;">
+            <i class="bi bi-qr-code fs-1 text-primary d-block mb-1"></i>
+            <small class="fw-bold d-block text-uppercase text-muted" style="font-size: 0.75rem;">Scan in Classroom</small>
+            <span class="badge bg-primary-subtle text-primary mt-1">Instant Auto-Location</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Privacy Principle Banner -->
+  <div class="privacy-banner mb-5 shadow-sm">
+    <div class="d-flex align-items-center gap-3">
+      <div class="fs-2 text-success">
+        <i class="bi bi-shield-fill-check"></i>
+      </div>
+      <div>
+        <h5 class="fw-bold text-success-emphasis mb-1">"REPORT THE ISSUE, NOT THE STUDENT"</h5>
+        <p class="mb-0 text-muted small">
+          We strictly do not collect student names, roll numbers, emails, phone numbers, IP addresses, or device fingerprints. Your privacy is absolute and guaranteed.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- How It Works (The 4-Step Process) -->
+  <div class="text-center mb-5">
+    <h2 class="fw-bold text-dark mb-2">How It Works</h2>
+    <p class="text-muted">A frictionless, confidential 4-step reporting workflow</p>
+
+    <div class="row g-4 mt-2">
+      <!-- Step 1 -->
+      <div class="col-md-3">
+        <div class="card h-100 card-hover p-4 text-center border-0 shadow-sm">
+          <div class="mx-auto mb-3 rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+            <i class="bi bi-qr-code-scan fs-3"></i>
+          </div>
+          <span class="badge bg-primary-subtle text-primary align-self-center mb-2">Step 1</span>
+          <h5 class="fw-bold">Scan QR Code</h5>
+          <p class="text-muted small mb-0">
+            Scan the QR code placed in your classroom, laboratory, library, canteen, or hostel.
+          </p>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="col-md-3">
+        <div class="card h-100 card-hover p-4 text-center border-0 shadow-sm">
+          <div class="mx-auto mb-3 rounded-circle bg-info-subtle text-info d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+            <i class="bi bi-chat-text fs-3"></i>
+          </div>
+          <span class="badge bg-info-subtle text-info align-self-center mb-2">Step 2</span>
+          <h5 class="fw-bold">Describe Issue</h5>
+          <p class="text-muted small mb-0">
+            Write the problem freely in your own words. No rigid checklists or forced categories.
+          </p>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="col-md-3">
+        <div class="card h-100 card-hover p-4 text-center border-0 shadow-sm">
+          <div class="mx-auto mb-3 rounded-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+            <i class="bi bi-send fs-3"></i>
+          </div>
+          <span class="badge bg-warning-subtle text-warning align-self-center mb-2">Step 3</span>
+          <h5 class="fw-bold">Submit Anonymously</h5>
+          <p class="text-muted small mb-0">
+            Click submit without logging in. Your report is directly and safely forwarded to administration.
+          </p>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="col-md-3">
+        <div class="card h-100 card-hover p-4 text-center border-0 shadow-sm">
+          <div class="mx-auto mb-3 rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+            <i class="bi bi-clock-history fs-3"></i>
+          </div>
+          <span class="badge bg-success-subtle text-success align-self-center mb-2">Step 4</span>
+          <h5 class="fw-bold">Track with ID</h5>
+          <p class="text-muted small mb-0">
+            Receive a unique Complaint ID (e.g. <code>CMP-2026-0001</code>) and track resolution progress anytime.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supported Issue Categories Highlights -->
+  <div class="card border-0 shadow-sm p-4 mb-5">
+    <div class="row align-items-center">
+      <div class="col-lg-6">
+        <span class="text-primary fw-bold text-uppercase small">Comprehensive Support</span>
+        <h3 class="fw-bold mt-1">What You Can Report</h3>
+        <p class="text-muted">
+          Whether it is teaching quality, faculty concerns, infrastructure failure, Wi-Fi issues, sanitation, or safety—our system treats every matter with utmost seriousness.
+        </p>
+        <ul class="list-unstyled d-flex flex-column gap-2 text-secondary mb-4">
+          <li><i class="bi bi-check-circle-fill text-success me-2"></i> <strong>Faculty & Teaching:</strong> Teaching pace, subject clarity, class management.</li>
+          <li><i class="bi bi-check-circle-fill text-success me-2"></i> <strong>Facilities & Electrical:</strong> Fans, projectors, AC, lighting, damaged benches.</li>
+          <li><i class="bi bi-check-circle-fill text-success me-2"></i> <strong>Labs & IT:</strong> Malfunctioning PCs, instruments, software, Wi-Fi connectivity.</li>
+          <li><i class="bi bi-check-circle-fill text-success me-2"></i> <strong>Campus Life:</strong> Water purifiers, washrooms, hostel facilities, canteen food.</li>
+        </ul>
+        <a href="{{ url_for('public.complaint') }}" class="btn btn-primary">
+          <i class="bi bi-arrow-right-circle me-1"></i> Proceed to Submit an Issue
+        </a>
+      </div>
+      <div class="col-lg-6 mt-4 mt-lg-0">
+        <div class="bg-light p-4 rounded-3 border">
+          <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-geo-alt-fill text-danger me-1"></i> Select or Scan a Location</h6>
+          <p class="small text-muted mb-3">If you are submitting from a browser right now, select your location directly:</p>
+          <div class="d-flex flex-wrap gap-2">
+            {% for loc in locations %}
+              <a href="{{ url_for('public.complaint', location=loc.name) }}" class="btn btn-outline-secondary btn-sm">
+                {{ loc.name }}
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Track Bar -->
+  <div class="card bg-primary text-white p-4 shadow-sm border-0 mb-5">
+    <div class="row align-items-center">
+      <div class="col-md-7">
+        <h4 class="fw-bold mb-1"><i class="bi bi-search me-2"></i> Already have a Complaint ID?</h4>
+        <p class="mb-0 text-white-50">Enter your Complaint ID to check admin response and real-time resolution status.</p>
+      </div>
+      <div class="col-md-5 mt-3 mt-md-0">
+        <form action="{{ url_for('public.track') }}" method="POST" class="d-flex gap-2">
+          <input type="text" name="complaint_id" class="form-control" placeholder="e.g. CMP-2026-0001" required>
+          <button type="submit" class="btn btn-light fw-bold text-primary px-3">
+            Track
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

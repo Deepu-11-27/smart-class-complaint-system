@@ -1,0 +1,107 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Settings - Smart Class Admin{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="mb-4">
+      <h3 class="fw-bold mb-0">System Settings & Security</h3>
+      <small class="text-muted">Manage administrator access, password, and notification configurations</small>
+    </div>
+
+    <!-- Security & Password Card -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white py-3">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-shield-lock text-primary me-2"></i>Change Administrator Password</h6>
+      </div>
+      <div class="card-body p-4">
+        <form action="{{ url_for('admin.settings') }}" method="POST">
+          <div class="mb-3">
+            <label for="current_password" class="form-label small fw-semibold">Current Password</label>
+            <input type="password" name="current_password" id="current_password" class="form-control" placeholder="••••••••" required>
+          </div>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label for="new_password" class="form-label small fw-semibold">New Password</label>
+              <input type="password" name="new_password" id="new_password" class="form-control" placeholder="Minimum 6 characters" minlength="6" required>
+            </div>
+            <div class="col-md-6">
+              <label for="confirm_password" class="form-label small fw-semibold">Confirm New Password</label>
+              <input type="password" name="confirm_password" id="confirm_password" class="form-control" placeholder="Re-enter new password" minlength="6" required>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary px-4 fw-bold">
+            <i class="bi bi-check2-circle me-1"></i> Update Password
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- System Configuration & Environmental Status Card -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white py-3">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-sliders text-primary me-2"></i>System Architecture & Environment</h6>
+      </div>
+      <div class="card-body p-4">
+        <table class="table table-bordered mb-0 small">
+          <tbody>
+            <tr>
+              <th class="bg-light" style="width: 35%;">Admin Username:</th>
+              <td><code>{{ admin.username }}</code></td>
+            </tr>
+            <tr>
+              <th class="bg-light">Admin Notification Email:</th>
+              <td><code>{{ config.ADMIN_NOTIFICATION_EMAIL }}</code></td>
+            </tr>
+            <tr>
+              <th class="bg-light">SMTP Delivery Status:</th>
+              <td>
+                {% if config.MAIL_USERNAME %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">
+                    <i class="bi bi-check-circle me-1"></i> Live SMTP (Server: {{ config.MAIL_SERVER }}:{{ config.MAIL_PORT }})
+                  </span>
+                {% else %}
+                  <span class="badge bg-info-subtle text-info border border-info-subtle">
+                    <i class="bi bi-info-circle me-1"></i> Local Log Simulation Mode (Safe for Dev)
+                  </span>
+                {% endif %}
+              </td>
+            </tr>
+            <tr>
+              <th class="bg-light">Database Engine:</th>
+              <td><code>SQLite (instance/complaints.db) via SQLAlchemy</code></td>
+            </tr>
+            <tr>
+              <th class="bg-light">Application Base URL:</th>
+              <td><code>{{ config.APP_URL }}</code></td>
+            </tr>
+            <tr>
+              <th class="bg-light">Privacy Protocol:</th>
+              <td>
+                <span class="badge bg-success text-white">
+                  <i class="bi bi-shield-check me-1"></i> STRICT ANONYMOUS (Zero Student PII Stored)
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Privacy & Audit Information -->
+    <div class="privacy-banner">
+      <div class="d-flex align-items-center gap-3">
+        <i class="bi bi-shield-shaded fs-3 text-success"></i>
+        <div>
+          <h6 class="fw-bold text-success-emphasis mb-1">Architectural Guarantee of Confidentiality</h6>
+          <p class="small text-muted mb-0">
+            The database schema contains neither tables nor columns for student identification, IP logging, device tracking, or media uploads. All complaints remain strictly anonymous.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

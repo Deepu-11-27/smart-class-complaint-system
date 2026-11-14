@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Complaint - Smart Class Complaint System{% endblock %}
+
+{% block content %}
+<div class="container py-2">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+
+      <!-- Header & Message -->
+      <div class="text-center mb-4">
+        <h2 class="fw-bold text-dark mb-2">Smart Class Complaint System</h2>
+        <p class="lead text-muted fs-6 mb-3">
+          Report any issue in your school or college. No personal details are required.
+        </p>
+
+        <!-- Privacy Assurance Badge -->
+        <div class="privacy-banner text-start shadow-sm mb-3">
+          <div class="d-flex align-items-center gap-3">
+            <i class="bi bi-shield-lock-fill fs-3 text-success"></i>
+            <div>
+              <div class="fw-bold text-success-emphasis">Confidential & Anonymous Submission</div>
+              <div class="small text-muted">
+                Your personal details are not required to submit a complaint. Please do not enter your name, roll number, phone number, email address, or other personal identification in your complaint.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Complaint Card -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4 p-md-5">
+
+          <form action="{{ url_for('public.complaint') }}" method="POST" id="complaintForm" novalidate>
+
+            <!-- 1. LOCATION (Auto-detected from QR Code) -->
+            <div class="mb-4">
+              <label class="form-label fw-bold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-geo-alt-fill text-danger me-1"></i> Location</span>
+                <span class="badge bg-success-subtle text-success border border-success-subtle font-monospace">Auto-Identified</span>
+              </label>
+
+              {% if prefilled_location %}
+                <div class="location-badge-box mb-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                    <div>
+                      <span class="small text-muted d-block">Complaint Location:</span>
+                      <span class="location-name">{{ prefilled_location }}</span>
+                    </div>
+                  </div>
+                  <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#changeLocationCollapse">
+                    Change Location
+                  </button>
+                </div>
+                <input type="hidden" name="location" id="hiddenLocation" value="{{ prefilled_location }}">
+
+                <div class="collapse mt-2" id="changeLocationCollapse">
+                  <div class="p-3 bg-light rounded-3 border">
+                    <label class="form-label small fw-semibold">Select Different Location:</label>
+                    <select class="form-select form-select-sm" id="locationSelectDropdown" onchange="document.getElementById('hiddenLocation').value = this.value;">
+                      {% for loc in locations %}
+                        <option value="{{ loc.name }}" {% if loc.name == prefilled_location %}selected{% endif %}>{{ loc.name }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+              {% else %}
+                <div class="mb-2">
+                  <select name="location" class="form-select" id="locationSelect">
+                    <option value="" disabled>-- Select Campus Location --</option>
+                    {% for loc in locations %}
+                      <option value="{{ loc.name }}" {% if loop.first %}selected{% endif %}>{{ loc.name }}</option>
+                    {% endfor %}
+                    <option value="__custom__">+ Enter Custom Location</option>
+                  </select>
+                </div>
+                <div id="customLocationWrapper" class="d-none mt-2">
+                  <input type="text" name="custom_location" id="customLocationInput" class="form-control" placeholder="Specify location (e.g. Block C Washroom, Sports Pavilion)">
+                </div>
+              {% endif %}
+
+              <!-- Optional specific spot -->
+              <div class="mt-2">
+                <input type="text" name="specific_location" class="form-control form-control-sm" placeholder="Specific spot / bench / terminal / room details (Optional - e.g. Row 3 Bench 2, PC 14)" value="{{ form_data.get('specific_location', '') }}">
+              </div>
+            </div>
+
+            <!-- 2. CATEGORY (Optional) -->
+            <div class="mb-4">
+              <label for="category" class="form-label fw-bold d-flex justify-content-between">
+                <span><i class="bi bi-tags-fill text-primary me-1"></i> Complaint Category</span>
+                <span class="text-muted small fw-normal">Optional</span>
+              </label>
+              <select name="category" id="category" class="form-select">
+                <option value="Other">Select a category (or leave as Other)</option>
+                {% for cat in categories %}
+                  <option value="{{ cat }}" {% if form_data.get('category') == cat %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+              </select>
+              <div class="form-text small text-muted">
+                Selecting a category is optional. If your issue is not listed or you prefer not to classify it, leave as "Other".
+              </div>
+            </div>
+
+            <!-- 3. FACULTY / STAFF NAME (Optional) -->
+            <div class="mb-4">
+              <label for="faculty_staff_name" class="form-label fw-bold d-flex justify-content-between">
+                <span><i class="bi bi-person-badge text-secondary me-1"></i> Faculty or Staff Name</span>
+                <span class="text-muted small fw-normal">Optional</span>
+              </label>
+              <input type="text" name="faculty_staff_name" id="faculty_staff_name" class="form-control" placeholder="Name of faculty or staff member (leave blank if not applicable)" value="{{ form_data.get('faculty_staff_name', '') }}">
+              <div class="form-text small text-muted">
+                Only provide if your issue relates to a specific faculty or staff member. You can leave this blank.
+              </div>
+            </div>
+
+            <!-- 4. DESCRIBE ISSUE (Required - Student's Own Words) -->
+            <div class="mb-4">
+              <label for="description" class="form-label fw-bold d-flex justify-content-between">
+                <span><i class="bi bi-chat-left-text-fill text-primary me-1"></i> Describe your issue <span class="text-danger">*</span></span>
+                <span class="badge bg-danger-subtle text-danger">Required</span>
+              </label>
+
+              <!-- Dynamic Privacy Warning Alert (Triggered if student accidentally types phone/email) -->
+              <div id="privacyWarningNotice" class="privacy-banner-warning mb-2 d-none">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi bi-shield-exclamation text-warning fs-5"></i>
+                  <small class="text-warning-emphasis fw-semibold">
+                    Friendly Privacy Reminder: Please avoid including personal phone numbers, emails, or personal identifiers. Your report is completely confidential!
+                  </small>
+                </div>
+              </div>
+
+              <textarea name="description" id="description" rows="6" class="form-control" placeholder="Please describe your problem in your own words..." required minlength="10" maxlength="3000">{{ form_data.get('description', '') }}</textarea>
+
+              <div class="d-flex justify-content-between align-items-center mt-1">
+                <small class="text-muted">Minimum 10 characters. Describe the problem freely.</small>
+                <div id="charCount" class="char-counter">0 / 3000 characters</div>
+              </div>
+            </div>
+
+            <!-- 5. PRIORITY (Optional - Default Medium) -->
+            <div class="mb-4">
+              <label class="form-label fw-bold d-flex justify-content-between">
+                <span><i class="bi bi-flag-fill text-warning me-1"></i> Priority</span>
+                <span class="text-muted small fw-normal">Default: Medium</span>
+              </label>
+              <div class="row g-2">
+                <div class="col-6 col-md-3">
+                  <input type="radio" class="btn-check" name="priority" id="prio_low" value="Low" {% if form_data.get('priority') == 'Low' %}checked{% endif %}>
+                  <label class="btn btn-outline-secondary w-100 py-2" for="prio_low">
+                    <i class="bi bi-arrow-down-circle me-1"></i> Low
+                  </label>
+                </div>
+                <div class="col-6 col-md-3">
+                  <input type="radio" class="btn-check" name="priority" id="prio_med" value="Medium" {% if not form_data.get('priority') or form_data.get('priority') == 'Medium' %}checked{% endif %}>
+                  <label class="btn btn-outline-primary w-100 py-2" for="prio_med">
+                    <i class="bi bi-dash-circle me-1"></i> Medium
+                  </label>
+                </div>
+                <div class="col-6 col-md-3">
+                  <input type="radio" class="btn-check" name="priority" id="prio_high" value="High" {% if form_data.get('priority') == 'High' %}checked{% endif %}>
+                  <label class="btn btn-outline-warning w-100 py-2 text-dark" for="prio_high">
+                    <i class="bi bi-arrow-up-circle me-1"></i> High
+                  </label>
+                </div>
+                <div class="col-6 col-md-3">
+                  <input type="radio" class="btn-check" name="priority" id="prio_emergency" value="Emergency" {% if form_data.get('priority') == 'Emergency' %}checked{% endif %}>
+                  <label class="btn btn-outline-danger w-100 py-2" for="prio_emergency">
+                    <i class="bi bi-exclamation-triangle me-1"></i> Emergency
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="d-grid mt-4">
+              <button type="submit" class="btn btn-primary btn-lg shadow fw-bold py-3">
+                <i class="bi bi-send-fill me-2"></i> Submit Complaint
+              </button>
+            </div>
+
+            <!-- Bottom Privacy Reassurance -->
+            <div class="text-center mt-3">
+              <small class="text-muted">
+                <i class="bi bi-lock-fill me-1"></i> No student account required &bull; Anonymous transmission &bull; No identity stored
+              </small>
+            </div>
+
+          </form>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

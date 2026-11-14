@@ -1,0 +1,55 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Create Location - Smart Class Admin{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6 col-md-8">
+    <div class="mb-3">
+      <a href="{{ url_for('admin.locations') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Back to Locations
+      </a>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3">
+        <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-geo-alt-fill text-primary me-2"></i>Create New Campus Location</h5>
+      </div>
+      <div class="card-body p-4">
+        <form action="{{ url_for('admin.create_location') }}" method="POST">
+          <div class="mb-3">
+            <label for="name" class="form-label fw-bold small text-muted">Location Name <span class="text-danger">*</span></label>
+            <input type="text" name="name" id="name" class="form-control form-control-lg" placeholder="e.g. Classroom B204, Chemistry Lab 2" required autofocus>
+            <div class="form-text small text-muted">A unique identifier for this physical space.</div>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label for="building" class="form-label fw-bold small text-muted">Building / Wing</label>
+              <input type="text" name="building" id="building" class="form-control" placeholder="e.g. Engineering Block">
+            </div>
+            <div class="col-6">
+              <label for="floor" class="form-label fw-bold small text-muted">Floor / Area</label>
+              <input type="text" name="floor" id="floor" class="form-control" placeholder="e.g. 2nd Floor">
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label for="description" class="form-label fw-bold small text-muted">Description / Notes</label>
+            <textarea name="description" id="description" rows="3" class="form-control" placeholder="e.g. Room with 60 seats, smart board, and 4 ceiling fans"></textarea>
+          </div>
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary btn-lg fw-bold shadow-sm">
+              <i class="bi bi-qr-code me-1"></i> Create Location & Generate QR Code
+            </button>
+            <a href="{{ url_for('admin.locations') }}" class="btn btn-outline-secondary">
+              Cancel
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

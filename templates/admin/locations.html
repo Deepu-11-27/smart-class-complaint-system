@@ -1,0 +1,238 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Campus Locations & QR Codes - Smart Class Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h3 class="fw-bold mb-0">Campus Locations & QR Codes</h3>
+    <small class="text-muted">Manage school/college locations and generate room-specific QR codes</small>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('admin.qr_codes') }}" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-grid me-1"></i> QR Gallery
+    </a>
+    <a href="{{ url_for('admin.print_all_qr') }}" target="_blank" class="btn btn-outline-dark btn-sm">
+      <i class="bi bi-printer me-1"></i> Print All QR Sheets
+    </a>
+    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addLocationModal">
+      <i class="bi bi-plus-circle me-1"></i> Add New Location
+    </button>
+  </div>
+</div>
+
+<!-- Locations Table Card -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th style="width: 80px;">QR Preview</th>
+          <th>Location Name</th>
+          <th>Building / Block</th>
+          <th>Floor / Area</th>
+          <th>Description</th>
+          <th>Complaints</th>
+          <th>Status</th>
+          <th style="min-width: 220px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for loc in locations %}
+          <tr>
+            <td>
+              <img src="{{ loc.qr_base64 }}" alt="QR" width="54" height="54" class="rounded border p-1 bg-white cursor-pointer" data-bs-toggle="modal" data-bs-target="#qrModal{{ loc.id }}" title="Click to enlarge">
+            </td>
+            <td>
+              <strong class="text-dark">{{ loc.name }}</strong>
+            </td>
+            <td class="small text-secondary">{{ loc.building or '-' }}</td>
+            <td class="small text-secondary">{{ loc.floor or '-' }}</td>
+            <td class="small text-muted text-truncate" style="max-width: 200px;">
+              {{ loc.description or '-' }}
+            </td>
+            <td>
+              {% if loc.complaint_count > 0 %}
+                <a href="{{ url_for('admin.complaints', location=loc.name) }}" class="badge bg-primary text-decoration-none">
+                  {{ loc.complaint_count }}
+                </a>
+              {% else %}
+                <span class="badge bg-light text-muted border">0</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if loc.is_active %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle">Active</span>
+              {% else %}
+                <span class="badge bg-secondary-subtle text-secondary border">Inactive</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="btn-group btn-group-sm">
+                <!-- View QR Modal -->
+                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#qrModal{{ loc.id }}" title="View QR">
+                  <i class="bi bi-qr-code"></i>
+                </button>
+                <!-- Download QR PNG -->
+                <a href="{{ url_for('api.get_qr_image', location_id=loc.id, download=1) }}" class="btn btn-outline-secondary" title="Download PNG">
+                  <i class="bi bi-download"></i>
+                </a>
+                <!-- Print QR Card -->
+                <a href="{{ url_for('admin.print_location_qr', id=loc.id) }}" target="_blank" class="btn btn-outline-dark" title="Print Card">
+                  <i class="bi bi-printer"></i>
+                </a>
+                <!-- Edit Location Modal Trigger -->
+                <button type="button" class="btn btn-outline-info text-dark" data-bs-toggle="modal" data-bs-target="#editModal{{ loc.id }}" title="Edit Location">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <!-- Delete / Deactivate -->
+                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ loc.id }}" title="Delete Location">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- QR Preview Modal -->
+          <div class="modal fade" id="qrModal{{ loc.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content text-center p-3">
+                <div class="modal-header border-0 pb-0">
+                  <h5 class="modal-title fw-bold">{{ loc.name }}</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                  <div class="p-3 bg-light rounded-3 d-inline-block border mb-3">
+                    <img src="{{ loc.qr_base64 }}" alt="QR Code" width="220" height="220">
+                  </div>
+                  <div class="small text-muted mb-2 font-monospace">{{ loc.complaint_url }}</div>
+                  <p class="small text-secondary">
+                    Scanning this code automatically opens the complaint submission form pre-filled with <strong>{{ loc.name }}</strong>.
+                  </p>
+                  <div class="d-flex justify-content-center gap-2 mt-3">
+                    <a href="{{ url_for('api.get_qr_image', location_id=loc.id, download=1) }}" class="btn btn-primary btn-sm">
+                      <i class="bi bi-download me-1"></i> Download PNG
+                    </a>
+                    <a href="{{ url_for('admin.print_location_qr', id=loc.id) }}" target="_blank" class="btn btn-dark btn-sm">
+                      <i class="bi bi-printer me-1"></i> Print Poster
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Edit Location Modal -->
+          <div class="modal fade" id="editModal{{ loc.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <form action="{{ url_for('admin.edit_location', id=loc.id) }}" method="POST">
+                  <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Edit Location: {{ loc.name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="mb-3">
+                      <label class="form-label small fw-semibold">Location Name <span class="text-danger">*</span></label>
+                      <input type="text" name="name" class="form-control" value="{{ loc.name }}" required>
+                    </div>
+                    <div class="row g-2 mb-3">
+                      <div class="col-6">
+                        <label class="form-label small fw-semibold">Building / Block</label>
+                        <input type="text" name="building" class="form-control" value="{{ loc.building }}">
+                      </div>
+                      <div class="col-6">
+                        <label class="form-label small fw-semibold">Floor / Area</label>
+                        <input type="text" name="floor" class="form-control" value="{{ loc.floor }}">
+                      </div>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label small fw-semibold">Description / Notes</label>
+                      <input type="text" name="description" class="form-control" value="{{ loc.description }}">
+                    </div>
+                    <div class="form-check form-switch">
+                      <input class="form-check-input" type="checkbox" name="is_active" id="activeToggle{{ loc.id }}" {% if loc.is_active %}checked{% endif %}>
+                      <label class="form-check-label small" for="activeToggle{{ loc.id }}">Active (Visible to students)</label>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Save Changes</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- Delete Confirmation Modal -->
+          <div class="modal fade" id="deleteModal{{ loc.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <form action="{{ url_for('admin.delete_location', id=loc.id) }}" method="POST">
+                  <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle me-1"></i> Delete Location</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body">
+                    <p>Are you sure you want to delete or deactivate location: <strong>{{ loc.name }}</strong>?</p>
+                    <p class="small text-muted mb-0">If this location has past complaints, it will be safely deactivated to preserve historical analytics.</p>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger btn-sm">Confirm Delete / Deactivate</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <tr>
+            <td colspan="8" class="text-center text-muted py-5">
+              No campus locations defined yet.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add New Location Modal -->
+<div class="modal fade" id="addLocationModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="{{ url_for('admin.locations') }}" method="POST">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold"><i class="bi bi-geo-alt-fill text-primary me-1"></i> Add Campus Location</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Location Name <span class="text-danger">*</span></label>
+            <input type="text" name="name" class="form-control" placeholder="e.g. Classroom C302, Robotics Lab, 3rd Floor Washroom" required>
+            <div class="form-text small text-muted">This will appear on the QR code sign and complaint forms.</div>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Building / Block</label>
+              <input type="text" name="building" class="form-control" placeholder="e.g. Science Block">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Floor / Wing</label>
+              <input type="text" name="floor" class="form-control" placeholder="e.g. 3rd Floor">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Description</label>
+            <input type="text" name="description" class="form-control" placeholder="e.g. Near Electronics Dept. seminar hall">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">Create Location & Generate QR</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Track Complaint Status - Smart Class Complaint System{% endblock %}
+
+{% block content %}
+<div class="container py-2">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+
+      <!-- Track Search Card -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4">
+          <h3 class="fw-bold text-dark text-center mb-1">Track Complaint Status</h3>
+          <p class="text-muted text-center small mb-4">
+            Enter your unique Complaint ID to check real-time updates and administration responses.
+          </p>
+
+          <form action="{{ url_for('public.track') }}" method="POST" class="row g-2 justify-content-center">
+            <div class="col-sm-8">
+              <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-ticket-perforated text-primary"></i></span>
+                <input type="text" name="complaint_id" class="form-control form-control-lg font-monospace text-uppercase" placeholder="e.g. CMP-2026-0001" value="{{ searched_id }}" required>
+              </div>
+            </div>
+            <div class="col-sm-4">
+              <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold">
+                <i class="bi bi-search me-1"></i> Check Status
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Not Found Alert -->
+      {% if not_found %}
+        <div class="alert alert-warning border-0 bg-warning-subtle shadow-sm p-4 text-center rounded-3">
+          <i class="bi bi-exclamation-triangle-fill text-warning display-6 d-block mb-2"></i>
+          <h5 class="fw-bold text-dark mb-1">Complaint Not Found</h5>
+          <p class="text-secondary small mb-0">
+            No complaint was found matching ID: <strong>{{ searched_id }}</strong>. Please verify the ID format (e.g. <code>CMP-2026-0001</code>) and try again.
+          </p>
+        </div>
+      {% endif %}
+
+      <!-- Complaint Details Card -->
+      {% if complaint %}
+        <div class="card shadow-sm border-0 mb-4">
+          <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <div>
+              <span class="small text-muted d-block">Complaint ID</span>
+              <h5 class="fw-bold font-monospace text-primary mb-0">{{ complaint.complaint_id }}</h5>
+            </div>
+            <div>
+              <span class="badge {{ complaint.status_badge_class }} fs-6 px-3 py-2 rounded-pill">
+                {{ complaint.status }}
+              </span>
+            </div>
+          </div>
+
+          <div class="card-body p-4">
+
+            <!-- Visual Progress Stepper -->
+            <div class="status-tracker">
+              {% set s = complaint.status %}
+              
+              <!-- Step 1: Pending -->
+              <div class="status-step {% if s in ['Pending', 'Under Review', 'In Progress', 'Resolved'] %}completed{% endif %} {% if s == 'Pending' %}active{% endif %}">
+                <div class="status-step-icon">
+                  <i class="bi bi-send-check"></i>
+                </div>
+                <div class="status-step-label">Submitted</div>
+              </div>
+
+              <!-- Step 2: Under Review -->
+              <div class="status-step {% if s in ['Under Review', 'In Progress', 'Resolved'] %}completed{% endif %} {% if s == 'Under Review' %}active{% endif %}">
+                <div class="status-step-icon">
+                  <i class="bi bi-search"></i>
+                </div>
+                <div class="status-step-label">Under Review</div>
+              </div>
+
+              <!-- Step 3: In Progress -->
+              <div class="status-step {% if s in ['In Progress', 'Resolved'] %}completed{% endif %} {% if s == 'In Progress' %}active{% endif %}">
+                <div class="status-step-icon">
+                  <i class="bi bi-gear-wide-connected"></i>
+                </div>
+                <div class="status-step-label">In Progress</div>
+              </div>
+
+              <!-- Step 4: Resolved / Rejected -->
+              {% if s == 'Rejected' %}
+                <div class="status-step rejected">
+                  <div class="status-step-icon">
+                    <i class="bi bi-x-circle"></i>
+                  </div>
+                  <div class="status-step-label">Rejected</div>
+                </div>
+              {% else %}
+                <div class="status-step {% if s == 'Resolved' %}completed active{% endif %}">
+                  <div class="status-step-icon">
+                    <i class="bi bi-check-lg"></i>
+                  </div>
+                  <div class="status-step-label">Resolved</div>
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Complaint Meta Information Grid -->
+            <div class="row g-3 bg-light p-3 rounded-3 mb-4">
+              <div class="col-sm-6">
+                <span class="text-muted small d-block">Location</span>
+                <strong class="text-dark"><i class="bi bi-geo-alt text-danger me-1"></i> {{ complaint.location }}</strong>
+                {% if complaint.specific_location %}
+                  <span class="small text-secondary d-block mt-0">({{ complaint.specific_location }})</span>
+                {% endif %}
+              </div>
+              <div class="col-sm-6">
+                <span class="text-muted small d-block">Category</span>
+                <strong class="text-dark"><i class="bi bi-tag text-primary me-1"></i> {{ complaint.category }}</strong>
+              </div>
+              <div class="col-sm-6">
+                <span class="text-muted small d-block">Submitted On</span>
+                <span class="text-dark"><i class="bi bi-calendar3 me-1"></i> {{ complaint.created_at.strftime('%b %d, %Y at %I:%M %p') }}</span>
+              </div>
+              <div class="col-sm-6">
+                <span class="text-muted small d-block">Priority</span>
+                <span class="badge {{ complaint.priority_badge_class }}">{{ complaint.priority }}</span>
+              </div>
+              {% if complaint.faculty_staff_name %}
+                <div class="col-12">
+                  <span class="text-muted small d-block">Faculty / Staff Member Mentioned</span>
+                  <span class="text-dark"><i class="bi bi-person me-1"></i> {{ complaint.faculty_staff_name }}</span>
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Student's Issue Description -->
+            <div class="mb-4">
+              <h6 class="fw-bold text-uppercase text-muted small"><i class="bi bi-file-text me-1"></i> Reported Issue</h6>
+              <div class="p-3 bg-white border rounded-3 text-secondary" style="white-space: pre-wrap; font-size: 0.95rem;">{{ complaint.description }}</div>
+            </div>
+
+            <!-- Admin Official Response -->
+            <div class="mb-4">
+              <h6 class="fw-bold text-uppercase small text-dark"><i class="bi bi-chat-quote-fill text-primary me-1"></i> Administration Response</h6>
+              {% if complaint.admin_response %}
+                <div class="p-3 bg-primary-subtle border border-primary-subtle rounded-3 text-dark">
+                  <div class="d-flex align-items-center gap-2 mb-2 text-primary fw-semibold">
+                    <i class="bi bi-check-circle-fill"></i> Official Update from Administration
+                  </div>
+                  <p class="mb-0" style="white-space: pre-wrap;">{{ complaint.admin_response }}</p>
+                </div>
+              {% else %}
+                <div class="p-3 bg-light border rounded-3 text-muted small">
+                  <i class="bi bi-hourglass-split me-1"></i> The administration has received your complaint and will post an update here as actions are taken.
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Status Activity Timeline -->
+            <div>
+              <h6 class="fw-bold text-uppercase text-muted small mb-3"><i class="bi bi-clock-history me-1"></i> Status History</h6>
+              <div class="timeline">
+                {% for hist in complaint.history.all() %}
+                  <div class="timeline-item {% if hist.new_status == 'Resolved' %}resolved{% elif hist.new_status == 'Rejected' %}rejected{% endif %}">
+                    <div class="timeline-time">{{ hist.created_at.strftime('%b %d, %Y, %I:%M %p') }}</div>
+                    <div class="timeline-content">
+                      <strong class="d-block mb-1 text-dark">
+                        Status: <span class="badge bg-secondary">{{ hist.new_status }}</span>
+                      </strong>
+                      {% if hist.comment %}
+                        <p class="small text-secondary mb-0">{{ hist.comment }}</p>
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+
+            <!-- Confidentiality Notice -->
+            <div class="privacy-banner mt-4 text-start">
+              <small class="text-success-emphasis d-flex align-items-center gap-2">
+                <i class="bi bi-shield-check fs-5"></i>
+                <span><strong>Privacy Protected:</strong> In compliance with the anonymous complaint policy, no student identity or contact details are stored or displayed on this page.</span>
+              </small>
+            </div>
+
+          </div>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}
